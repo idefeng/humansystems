@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+ENV/
+.env
+
+# Logs
+storage/logs/*.log
+*.log
+
+# Databases & Temporary Files
+storage/life/database.jsonl
+storage/life/daily_log.md
+storage/life/daily_summary.md
+
+# OS
+.DS_Store
