@@ -17,8 +17,8 @@
 - [x] 完成 `butler` Agent 的 Telegram Bot (`idfbutlerbot`) 绑定与配置。
 - [x] 在 `rules.md` 中增补“健康预警规范”，完善系统对极端生理状态的响应闭环。
 - [x] 成功重构 `watcher.py` 为结构化处理器：支持 JSONL 存档、分类摘要生成及健康风险自动预警。
-- [x] 实现并上线标准化 MCP 网关服务 (`/latest_mood`, `/active_tasks`, `/inject_context`)。
-- [x] 配置 `.gitignore` 并完成代码提交。
+- [x] 实现并上线标准化 MCP 网关服务 (`/latest_mood`, `/active_tasks`, `/inject_context`)分析。
+- [x] 配置 `.gitignore` 并成功推送到远程仓库。
 
 ### 体感 (Vibe)
 - **关联感**：当看到 `curl` 返回的心情和 Nexus Voice 提取的一致时，能感受到系统各模块间协同工作的这种“确定性”。
@@ -30,3 +30,21 @@
 ### 下一步 (Next Steps)
 - 监控 `watcher.py` 的长期运行稳定性。
 - 为 `/status` 增加更多维度的状态上报。
+
+---
+
+## 2026-03-21 02:45
+
+### 进度 (Status)
+- [x] 成功启动“人生系统”核心组件：`mcp_gateway.py` (端口 8001) 与 `watcher.py` (语音监听)。
+- [x] 由于原 8000 端口占用，完成 `mcp_gateway.py` 端口迁移至 8001 并验证通过。
+- [x] 更新 `.gitignore` 以排除 `.pid` 过程文件。
+- [x] 验证 `~/nexus-voice/output` 目录监控状态正常。
+
+### 体感 (Vibe)
+- **流畅感**：虽然遇到了端口冲突，但快速定位并切换到 8001 端口的过程非常顺滑。看到 `curl` 返回结构化数据时，系统的“生命感”再次被唤醒。
+- **稳定性**：通过 `nohup` 离线运行，确保了系统在后台的持续感知能力。
+
+### 下一步 (Next Steps)
+- 考虑将所有 Python 服务整合进一个统一的启动器或 `docker-compose`。
+- 进一步优化 `butler` Agent 与 8001 端口网关的交互链路。

@@ -16,5 +16,8 @@ storage/life/database.jsonl
 storage/life/daily_log.md
 storage/life/daily_summary.md
 
+# PID files
+*.pid
+
 # OS
 .DS_Store

@@ -99,5 +99,5 @@ async def inject_context(data: ContextInjection):
         raise HTTPException(status_code=500, detail=f"注入失败: {e}")
 
 if __name__ == "__main__":
-    # 使用 8000 端口（如原 status_service 被占用需注意）
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # 默认 8000 端口可能被占用，此处修改为 8001
+    uvicorn.run(app, host="0.0.0.0", port=8001)
