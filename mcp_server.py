@@ -191,9 +191,14 @@ async def ingest_event(payload: dict):
     接收: text, fatigue_score, source
     """
     try:
-        text = payload.get("text", "")
+        # 兼容旧版本发出的 final_text 字段
+        text = payload.get("text") or payload.get("final_text") or ""
         fatigue_score = float(payload.get("fatigue_score", 0.0))
         source = payload.get("source", "unknown")
+        
+        # 自动补齐：如果 source 为未知但有内容，假设来自语音助手
+        if source == "unknown" and text:
+            source = "mac-voice-assistant"
         
         # 对齐 watcher.py 的结构要求
         # 疲劳值较高（>0.4）归为健康类，否则为生活类
