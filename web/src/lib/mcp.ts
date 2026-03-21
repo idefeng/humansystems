@@ -61,9 +61,14 @@ export const mcpClient = {
   },
 
   /**
-   * 获取系统状态 (兼容旧版仪表盘接口)
+   * 获取系统状态 (包含语音助手在线信息)
    */
-  async getStatus() {
+  async getStatus(): Promise<{
+    status: string;
+    assistant_online: boolean;
+    recent_history: EventRecord[];
+    mood_pulse: { current_index: number; label: string };
+  }> {
     const res = await fetch(`${BASE_URL}/status`);
     if (!res.ok) throw new Error('Failed to fetch system status');
     return res.json();

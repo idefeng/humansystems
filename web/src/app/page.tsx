@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { Activity, Heart, Search, LayoutDashboard } from "lucide-react";
+import { Activity, Heart, Search, LayoutDashboard, Signal } from "lucide-react";
 import { mcpClient, LifeStats, MoodHistoryEntry } from "@/lib/mcp";
 import { MoodPulseChart } from "@/components/MoodPulseChart";
 
 export default function Home() {
   const [stats, setStats] = useState<LifeStats | null>(null);
   const [history, setHistory] = useState<MoodHistoryEntry[]>([]);
+  const [isAssistantOnline, setIsAssistantOnline] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +29,21 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // 语音助手在线状态轮询 (30秒)
+  useEffect(() => {
+    async function checkStatus() {
+      try {
+        const status = await mcpClient.getStatus();
+        setIsAssistantOnline(status.assistant_online);
+      } catch (err) {
+        console.error("Status check failed:", err);
+      }
+    }
+    checkStatus();
+    const timer = setInterval(checkStatus, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#1a1b26] text-[#eeecfc] font-mono p-8">
       <header className="mb-12 flex items-center justify-between border-b border-[#747482]/20 pb-6">
@@ -35,8 +51,16 @@ export default function Home() {
           <LayoutDashboard className="text-[#7aa2f7] w-8 h-8" />
           <h1 className="text-2xl font-bold tracking-tight">HumanSystems Core</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#7aa2f7]/10 text-[#7aa2f7] text-xs">
+        <div className="flex items-center gap-6">
+          {/* Voice Assistant Signal */}
+          <div className="flex items-center gap-2 transition-all duration-500">
+            <Signal className={`w-4 h-4 ${isAssistantOnline ? 'text-[#9ece6a] drop-shadow-[0_0_8px_rgba(158,206,106,0.5)]' : 'text-[#565f89]'}`} />
+            <span className={`text-[10px] uppercase font-bold tracking-widest ${isAssistantOnline ? 'text-[#9ece6a]' : 'text-[#565f89]'}`}>
+              Assistant: {isAssistantOnline ? 'Online' : 'Offline'}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#7aa2f7]/10 text-[#7aa2f7] text-xs border border-[#7aa2f7]/20">
             <div className="w-2 h-2 rounded-full bg-[#7aa2f7] animate-pulse" />
             System Active
           </div>

@@ -101,19 +101,43 @@ def search_events(q: Optional[str] = None, category: Optional[str] = None, limit
 @app.get("/status")
 def get_status():
     """
-    兼容性接口：供 Stitch 仪表盘初始设计使用
+    获取系统状态，包含语音助手在线状态检测
     """
     df = load_data()
     if df.empty:
-        return {"status": "inactive", "recent_history": []}
+        return {"status": "inactive", "recent_history": [], "assistant_online": False}
     
-    history = df.tail(20).copy()
+    # 确保时区一致并按时间排序
+    df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
+    
+    # 检查语音助手在线状态 (10分钟内是否有 mac-voice-assistant 的数据)
+    ten_minutes_ago = pd.Timestamp.now(tz='UTC') - pd.Timedelta(minutes=10)
+    assistant_online = False
+    
+    # 获取含有 metadata 且 source 为 mac-voice-assistant 的记录
+    def check_source(m):
+        if isinstance(m, dict):
+            return m.get("source") == "mac-voice-assistant"
+        return False
+
+    if 'metadata' in df.columns:
+        recent_assistant_data = df[
+            (df['metadata'].apply(check_source)) & 
+            (df['timestamp'] > ten_minutes_ago)
+        ]
+        assistant_online = not recent_assistant_data.empty
+
+    history = df.sort_values('timestamp').tail(20).copy()
     history['timestamp'] = history['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
+    
+    # 修复 JSON 序列化 NaN 导致的 500 错误
+    history = history.where(pd.notnull(history), None)
     
     avg_sentiment = round(float(history['sentiment'].tail(5).mean()), 2) if not history.empty else 0.5
     
     return {
         "status": "active",
+        "assistant_online": assistant_online,
         "recent_history": history.to_dict(orient='records'),
         "mood_pulse": {
             "current_index": avg_sentiment,
