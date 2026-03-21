@@ -56,7 +56,16 @@ def get_mood_history(days: int = 7):
     history = df.loc[mask].copy()
     
     history['timestamp'] = history['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
-    return history[['timestamp', 'sentiment', 'category']].to_dict(orient='records')
+    
+    # 提取 fatigue_score，如果不存在于 metadata 则默认为 0.0
+    def extract_fatigue(row):
+        if 'metadata' in row and isinstance(row['metadata'], dict):
+            return row['metadata'].get('fatigue_score', 0.0)
+        return 0.0
+
+    history['fatigue_score'] = history.apply(extract_fatigue, axis=1)
+    
+    return history[['timestamp', 'sentiment', 'category', 'fatigue_score', 'content']].to_dict(orient='records')
 
 @app.get("/stats/summary")
 def get_life_stats():

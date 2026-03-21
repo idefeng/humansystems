@@ -16,6 +16,7 @@ import { Info, X } from 'lucide-react';
 interface DataPoint {
   timestamp: string;
   sentiment: number;
+  fatigue_score: number;
   category: string;
   content: string;
 }
@@ -33,8 +34,19 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data, isProtecti
     return data.reduce((acc, curr) => acc + curr.sentiment, 0) / data.length;
   }, [data]);
 
+  const isEmergencyMode = useMemo(() => {
+    return data.some(p => p.fatigue_score > 0.8);
+  }, [data]);
+
   // 动态颜色逻辑
   const chartConfig = useMemo(() => {
+    if (isEmergencyMode) {
+      return {
+        stroke: '#ff4d4d', // Emergency Red
+        fill: 'url(#colorEmergency)',
+        gradient: ['#ff4d4d', 'rgba(255, 77, 77, 0)']
+      };
+    }
     if (isProtectionMode) {
       return {
         stroke: '#ff9e64', // Orange (Protection Mode)
@@ -60,7 +72,7 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data, isProtecti
       fill: 'url(#colorDefault)',
       gradient: ['#bb9af7', 'rgba(187, 154, 247, 0)']
     };
-  }, [avgSentiment, isProtectionMode]);
+  }, [avgSentiment, isProtectionMode, isEmergencyMode]);
 
   const formattedData = useMemo(() => {
     return data.map(point => ({
@@ -69,19 +81,52 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data, isProtecti
     }));
   }, [data]);
 
+  const PulseDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    if (!payload || payload.fatigue_score <= 0.8) {
+      return <circle cx={cx} cy={cy} r={4} fill={chartConfig.stroke} stroke={isEmergencyMode ? '#3d0c0c' : isProtectionMode ? '#2d2019' : '#1a1b26'} strokeWidth={2} />;
+    }
+
+    return (
+      <g>
+        <motion.circle
+          cx={cx}
+          cy={cy}
+          r={4}
+          fill="#ff4d4d"
+          initial={{ r: 4, opacity: 0.8 }}
+          animate={{
+            r: [4, 14, 4],
+            opacity: [0.8, 0, 0.8],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <circle cx={cx} cy={cy} r={5} fill="#ff4d4d" stroke="#fff" strokeWidth={1.5} />
+      </g>
+    );
+  };
+
   return (
-    <div className={`w-full h-80 relative ${isProtectionMode ? 'bg-[#2d2019]' : 'bg-[#1a1b26]'} p-4 rounded-xl border ${isProtectionMode ? 'border-[#ff9e64]/20' : 'border-[#747482]/10'} transition-all duration-1000`}>
+    <div className={`w-full h-80 relative ${isEmergencyMode ? 'bg-[#3d0c0c]' : isProtectionMode ? 'bg-[#2d2019]' : 'bg-[#1a1b26]'} p-4 rounded-xl border ${isEmergencyMode ? 'border-[#ff4d4d]/40' : isProtectionMode ? 'border-[#ff9e64]/20' : 'border-[#747482]/10'} transition-all duration-1000 shadow-2xl`}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={formattedData}
           margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-          onClick={(state) => {
-            if (state && state.activePayload) {
+          onClick={(state: any) => {
+            if (state && state.activePayload && state.activePayload.length > 0) {
               setSelectedPoint(state.activePayload[0].payload as DataPoint);
             }
           }}
         >
           <defs>
+            <linearGradient id="colorEmergency" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#ff4d4d" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#ff4d4d" stopOpacity={0} />
+            </linearGradient>
             <linearGradient id="colorGreen" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#9ece6a" stopOpacity={0.3} />
               <stop offset="95%" stopColor="#9ece6a" stopOpacity={0} />
@@ -125,9 +170,10 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data, isProtecti
             dataKey="sentiment"
             stroke={chartConfig.stroke}
             fill={chartConfig.fill}
-            strokeWidth={2}
-            animationDuration={isProtectionMode ? 3000 : 1500}
-            activeDot={{ r: 6, fill: chartConfig.stroke, stroke: isProtectionMode ? '#2d2019' : '#1a1b26', strokeWidth: 2 }}
+            strokeWidth={3}
+            animationDuration={isEmergencyMode ? 500 : isProtectionMode ? 3000 : 1500}
+            dot={<PulseDot />}
+            activeDot={{ r: 8, fill: chartConfig.stroke, stroke: isEmergencyMode ? '#3d0c0c' : isProtectionMode ? '#2d2019' : '#1a1b26', strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>

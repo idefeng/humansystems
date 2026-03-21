@@ -6,7 +6,9 @@
 export interface MoodHistoryEntry {
   timestamp: string;
   sentiment: number;
+  fatigue_score: number;
   category: string;
+  content: string;
 }
 
 export interface LifeStats {
