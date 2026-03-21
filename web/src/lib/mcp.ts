@@ -66,6 +66,7 @@ export const mcpClient = {
   async getStatus(): Promise<{
     status: string;
     assistant_online: boolean;
+    protection_mode: boolean;
     recent_history: EventRecord[];
     mood_pulse: { current_index: number; label: string };
   }> {

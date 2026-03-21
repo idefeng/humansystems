@@ -8,6 +8,7 @@ import uvicorn
 import time
 
 app = FastAPI(title="HumanSystems Core API")
+PROTECTION_MODE = False
 
 # 启用 CORS 以支持 Stitch 仪表盘跨域调用
 app.add_middleware(
@@ -98,14 +99,23 @@ def search_events(q: Optional[str] = None, category: Optional[str] = None, limit
     res['timestamp'] = res['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
     return res.to_dict(orient='records')
 
+@app.post("/system/protection")
+async def set_protection_mode(status: bool):
+    """
+    开启或关闭保护模式
+    """
+    global PROTECTION_MODE
+    PROTECTION_MODE = status
+    return {"status": "success", "protection_mode": PROTECTION_MODE}
+
 @app.get("/status")
 def get_status():
     """
-    获取系统状态，包含语音助手在线状态检测
+    获取系统状态，包含语音助手在线状态及保护模式状态
     """
     df = load_data()
     if df.empty:
-        return {"status": "inactive", "recent_history": [], "assistant_online": False}
+        return {"status": "inactive", "recent_history": [], "assistant_online": False, "protection_mode": PROTECTION_MODE}
     
     # 确保时区一致并按时间排序
     df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
@@ -138,6 +148,7 @@ def get_status():
     return {
         "status": "active",
         "assistant_online": assistant_online,
+        "protection_mode": PROTECTION_MODE,
         "recent_history": history.to_dict(orient='records'),
         "mood_pulse": {
             "current_index": avg_sentiment,

@@ -9,6 +9,7 @@ export default function Home() {
   const [stats, setStats] = useState<LifeStats | null>(null);
   const [history, setHistory] = useState<MoodHistoryEntry[]>([]);
   const [isAssistantOnline, setIsAssistantOnline] = useState(false);
+  const [isProtectionMode, setIsProtectionMode] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,12 +30,13 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // 语音助手在线状态轮询 (30秒)
+  // 语音助手在线状态与保护模式轮询 (30秒)
   useEffect(() => {
     async function checkStatus() {
       try {
         const status = await mcpClient.getStatus();
         setIsAssistantOnline(status.assistant_online);
+        setIsProtectionMode(status.protection_mode);
       } catch (err) {
         console.error("Status check failed:", err);
       }
@@ -44,25 +46,37 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  // 保护模式下的动态样式
+  const theme = {
+    accent: isProtectionMode ? '#ff9e64' : '#7aa2f7',
+    bg: isProtectionMode ? 'bg-[#2d2019]' : 'bg-[#1a1b26]',
+    text: isProtectionMode ? 'text-[#ff9e64]' : 'text-[#7aa2f7]',
+    border: isProtectionMode ? 'border-[#ff9e64]/20' : 'border-[#7aa2f7]/20',
+    animate: isProtectionMode ? 'duration-[3000ms]' : 'duration-500',
+    pulseSpeed: isProtectionMode ? 'animate-[pulse_4s_cubic-bezier(0.4,0,0.6,1)_infinite]' : 'animate-pulse'
+  };
+
   return (
-    <div className="min-h-screen bg-[#1a1b26] text-[#eeecfc] font-mono p-8">
+    <div className={`min-h-screen ${theme.bg} text-[#eeecfc] font-mono p-8 transition-colors duration-1000`}>
       <header className="mb-12 flex items-center justify-between border-b border-[#747482]/20 pb-6">
         <div className="flex items-center gap-3">
-          <LayoutDashboard className="text-[#7aa2f7] w-8 h-8" />
-          <h1 className="text-2xl font-bold tracking-tight">HumanSystems Core</h1>
+          <LayoutDashboard className={`${theme.text} w-8 h-8 transition-colors duration-1000`} />
+          <h1 className="text-2xl font-bold tracking-tight">
+            {isProtectionMode ? "HumanSystems Protocol: Care" : "HumanSystems Core"}
+          </h1>
         </div>
         <div className="flex items-center gap-6">
           {/* Voice Assistant Signal */}
-          <div className="flex items-center gap-2 transition-all duration-500">
-            <Signal className={`w-4 h-4 ${isAssistantOnline ? 'text-[#9ece6a] drop-shadow-[0_0_8px_rgba(158,206,106,0.5)]' : 'text-[#565f89]'}`} />
-            <span className={`text-[10px] uppercase font-bold tracking-widest ${isAssistantOnline ? 'text-[#9ece6a]' : 'text-[#565f89]'}`}>
+          <div className="flex items-center gap-2 transition-all duration-1000">
+            <Signal className={`w-4 h-4 ${isAssistantOnline ? (isProtectionMode ? 'text-[#ff9e64]' : 'text-[#9ece6a]') : 'text-[#565f89]'} transition-colors duration-1000`} />
+            <span className={`text-[10px] uppercase font-bold tracking-widest ${isAssistantOnline ? (isProtectionMode ? 'text-[#ff9e64]' : 'text-[#9ece6a]') : 'text-[#565f89]'}`}>
               Assistant: {isAssistantOnline ? 'Online' : 'Offline'}
             </span>
           </div>
           
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#7aa2f7]/10 text-[#7aa2f7] text-xs border border-[#7aa2f7]/20">
-            <div className="w-2 h-2 rounded-full bg-[#7aa2f7] animate-pulse" />
-            System Active
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full bg-opacity-10 ${isProtectionMode ? 'bg-[#ff9e64]/10 text-[#ff9e64] border-[#ff9e64]/20' : 'bg-[#7aa2f7]/10 text-[#7aa2f7] border-[#7aa2f7]/20'} text-xs border transition-all duration-1000`}>
+            <div className={`w-2 h-2 rounded-full ${isProtectionMode ? 'bg-[#ff9e64]' : 'bg-[#7aa2f7]'} ${theme.pulseSpeed}`} />
+            {isProtectionMode ? "PROTECTION MODE ACTIVE" : "System Active"}
           </div>
         </div>
       </header>
@@ -94,12 +108,12 @@ export default function Home() {
           </div>
 
           {/* Search Card */}
-          <div className="bg-[#171926] p-6 rounded-lg border border-[#747482]/10 backdrop-blur-2xl">
+          <div className={`bg-[#171926] p-6 rounded-lg border ${isProtectionMode ? 'border-[#ff9e64]/10' : 'border-[#747482]/10'} backdrop-blur-2xl transition-colors duration-1000`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[#7aa2f7] text-sm font-semibold uppercase tracking-wider">Quick Actions</h3>
-              <Search className="text-[#7aa2f7] w-5 h-5" />
+              <h3 className={`${isProtectionMode ? 'text-[#ff9e64]' : 'text-[#7aa2f7]'} text-sm font-semibold uppercase tracking-wider transition-colors duration-1000`}>Quick Actions</h3>
+              <Search className={`${theme.text} w-5 h-5 transition-colors duration-1000`} />
             </div>
-            <button className="w-full bg-[#7aa2f7]/20 hover:bg-[#7aa2f7]/30 text-[#7aa2f7] py-2 rounded transition-colors text-sm">
+            <button className={`w-full ${isProtectionMode ? 'bg-[#ff9e64]/20 hover:bg-[#ff9e64]/30 text-[#ff9e64]' : 'bg-[#7aa2f7]/20 hover:bg-[#7aa2f7]/30 text-[#7aa2f7]'} py-2 rounded transition-all duration-1000 text-sm`}>
               Search Archive
             </button>
           </div>
@@ -108,15 +122,15 @@ export default function Home() {
         {/* Mood History Chart Section */}
         <section className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-4 bg-[#7aa2f7]" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-[#7aa2f7]">Mood Fluctuations</h2>
+            <div className={`w-1 h-4 ${isProtectionMode ? 'bg-[#ff9e64]' : 'bg-[#7aa2f7]'} transition-colors duration-1000`} />
+            <h2 className={`text-sm font-bold uppercase tracking-widest ${isProtectionMode ? 'text-[#ff9e64]' : 'text-[#7aa2f7]'} transition-colors duration-1000`}>Mood Fluctuations</h2>
           </div>
-          <MoodPulseChart data={history} />
+          <MoodPulseChart data={history} isProtectionMode={isProtectionMode} />
         </section>
 
-        <section className="bg-[#0c0d18] p-8 rounded-xl border border-[#747482]/5">
+        <section className={`${isProtectionMode ? 'bg-[#3b2b23]' : 'bg-[#0c0d18]'} p-8 rounded-xl border ${isProtectionMode ? 'border-[#ff9e64]/10' : 'border-[#747482]/5'} transition-colors duration-1000`}>
           <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
-            <div className="w-1 h-6 bg-[#bb9af7]" />
+            <div className={`w-1 h-6 ${isProtectionMode ? 'bg-[#ff9e64]' : 'bg-[#bb9af7]'} transition-colors duration-1000`} />
             Infrastructure Overview
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -134,7 +148,9 @@ export default function Home() {
             </div>
             <div>
               <span className="block text-[#aaaab8] text-[10px] uppercase font-bold mb-1">Status</span>
-              <span className="text-sm text-[#9ece6a]">Ready for Deployment</span>
+              <span className={`text-sm ${isProtectionMode ? 'text-[#ff9e64]' : 'text-[#9ece6a]'} transition-colors duration-1000`}>
+                {isProtectionMode ? 'Care Mode Engaged' : 'Ready for Deployment'}
+              </span>
             </div>
           </div>
         </section>

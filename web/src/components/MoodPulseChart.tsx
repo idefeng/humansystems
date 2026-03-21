@@ -22,9 +22,10 @@ interface DataPoint {
 
 interface MoodPulseChartProps {
   data: DataPoint[];
+  isProtectionMode?: boolean;
 }
 
-export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data }) => {
+export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data, isProtectionMode }) => {
   const [selectedPoint, setSelectedPoint] = useState<DataPoint | null>(null);
 
   const avgSentiment = useMemo(() => {
@@ -34,6 +35,13 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data }) => {
 
   // 动态颜色逻辑
   const chartConfig = useMemo(() => {
+    if (isProtectionMode) {
+      return {
+        stroke: '#ff9e64', // Orange (Protection Mode)
+        fill: 'url(#colorOrangeTheme)',
+        gradient: ['#ff9e64', 'rgba(255, 158, 100, 0)']
+      };
+    }
     if (avgSentiment > 0.7) {
       return {
         stroke: '#9ece6a', // Emerald/Green
@@ -52,7 +60,7 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data }) => {
       fill: 'url(#colorDefault)',
       gradient: ['#bb9af7', 'rgba(187, 154, 247, 0)']
     };
-  }, [avgSentiment]);
+  }, [avgSentiment, isProtectionMode]);
 
   const formattedData = useMemo(() => {
     return data.map(point => ({
@@ -62,7 +70,7 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data }) => {
   }, [data]);
 
   return (
-    <div className="w-full h-80 relative bg-[#1a1b26] p-4 rounded-xl border border-[#747482]/10">
+    <div className={`w-full h-80 relative ${isProtectionMode ? 'bg-[#2d2019]' : 'bg-[#1a1b26]'} p-4 rounded-xl border ${isProtectionMode ? 'border-[#ff9e64]/20' : 'border-[#747482]/10'} transition-all duration-1000`}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={formattedData}
@@ -81,6 +89,10 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data }) => {
             <linearGradient id="colorOrange" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#f7768e" stopOpacity={0.3} />
               <stop offset="95%" stopColor="#f7768e" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="colorOrangeTheme" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#ff9e64" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#ff9e64" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="colorDefault" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#bb9af7" stopOpacity={0.3} />
@@ -104,7 +116,7 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data }) => {
             ticks={[0, 0.5, 1]}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: '#171926', border: '1px solid #74748233', borderRadius: '8px', fontSize: '12px' }}
+            contentStyle={{ backgroundColor: isProtectionMode ? '#3b2b23' : '#171926', border: `1px solid ${isProtectionMode ? '#ff9e6433' : '#74748233'}`, borderRadius: '8px', fontSize: '12px' }}
             itemStyle={{ color: '#eeecfc' }}
             cursor={{ stroke: chartConfig.stroke, strokeWidth: 1 }}
           />
@@ -114,8 +126,8 @@ export const MoodPulseChart: React.FC<MoodPulseChartProps> = ({ data }) => {
             stroke={chartConfig.stroke}
             fill={chartConfig.fill}
             strokeWidth={2}
-            animationDuration={1500}
-            activeDot={{ r: 6, fill: chartConfig.stroke, stroke: '#1a1b26', strokeWidth: 2 }}
+            animationDuration={isProtectionMode ? 3000 : 1500}
+            activeDot={{ r: 6, fill: chartConfig.stroke, stroke: isProtectionMode ? '#2d2019' : '#1a1b26', strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
