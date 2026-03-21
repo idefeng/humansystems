@@ -149,6 +149,44 @@ async def record_event(event: dict):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+@app.post("/events/ingest")
+async def ingest_event(payload: dict):
+    """
+    标准化入库接口，支持对齐 watcher.py 结构
+    接收: text, fatigue_score, source
+    """
+    try:
+        text = payload.get("text", "")
+        fatigue_score = float(payload.get("fatigue_score", 0.0))
+        source = payload.get("source", "unknown")
+        
+        # 对齐 watcher.py 的结构要求
+        # 疲劳值较高（>0.4）归为健康类，否则为生活类
+        category = "健康" if fatigue_score > 0.4 else "生活"
+        # 情绪分值与疲劳值反向关联 (1.0 - 疲劳值)
+        sentiment = round(max(0.0, min(1.0, 1.0 - fatigue_score)), 2)
+        
+        new_event = {
+            "timestamp": pd.Timestamp.now(tz='UTC').isoformat(),
+            "category": category,
+            "content": text,
+            "action_item": False,
+            "sentiment": sentiment,
+            "metadata": {
+                "source": source,
+                "fatigue_score": fatigue_score,
+                "ingest_type": "api"
+            }
+        }
+        
+        with open(JSONL_DATABASE, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(new_event, ensure_ascii=False) + "\n")
+            
+        return {"status": "success", "message": "Data ingested successfully"}
+    except Exception as e:
+        print(f"Ingest failed: {e}")
+        return {"status": "error", "message": f"Server side error: {str(e)}"}
+
 if __name__ == "__main__":
     # 使用 8000 端口，确保与 Stitch 默认配置一致
     uvicorn.run(app, host="0.0.0.0", port=8000)
