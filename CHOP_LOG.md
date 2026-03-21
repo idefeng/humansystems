@@ -33,18 +33,19 @@
 
 ---
 
-## 2026-03-21 02:45
+## 2026-03-21 14:00
 
 ### 进度 (Status)
-- [x] 成功启动“人生系统”核心组件：`mcp_gateway.py` (端口 8001) 与 `watcher.py` (语音监听)。
-- [x] 由于原 8000 端口占用，完成 `mcp_gateway.py` 端口迁移至 8001 并验证通过。
-- [x] 更新 `.gitignore` 以排除 `.pid` 过程文件。
-- [x] 验证 `~/nexus-voice/output` 目录监控状态正常。
+- [x] 成功优化 `mcp_server.py`：引入 `pandas` 进行高效数据处理与统计。
+- [x] 增加新核心接口：`/mood/history` (历史趋势)、`/stats/summary` (多维度统计)、`/events/search` (关键词搜索)。
+- [x] 实现对多种 ISO8601 时间格式的兼容性解析。
+- [x] 完成 Stitch 仪表盘的 Tokyo Night 主题迁移与端口对齐 (8000)。
+- [x] 在仪表盘中引入 JetBrains Mono 字体，提升系统专业质感。
 
 ### 体感 (Vibe)
-- **流畅感**：虽然遇到了端口冲突，但快速定位并切换到 8001 端口的过程非常顺滑。看到 `curl` 返回结构化数据时，系统的“生命感”再次被唤醒。
-- **稳定性**：通过 `nohup` 离线运行，确保了系统在后台的持续感知能力。
+- **敏捷感**：Pandas 的引入让原本零散的 JSONL 数据瞬间具备了“可编程性”，查询延迟大幅降低。
+- **视觉享受**：Tokyo Night 配色在 14 寸 MBA 的 Liquid Retina 屏幕上表现惊艳，尤其是发光的洋红情绪曲线。
 
 ### 下一步 (Next Steps)
-- 考虑将所有 Python 服务整合进一个统一的启动器或 `docker-compose`。
-- 进一步优化 `butler` Agent 与 8001 端口网关的交互链路。
+- 探索 `/stats/summary` 的可视化组件在 Stitch 中的极致映射。
+- 计划将 `watcher.py` 处理后的元数据更紧密地与统计接口结合。
